@@ -1,0 +1,10 @@
+{
+  "orderId": "A-1001",
+  "customer": "Ada Lovelace",
+  "items": [
+    { "sku": "WIDGET-1", "qty": 2, "price": 9.99 },
+    { "sku": "GADGET-7", "qty": 1, "price": 49.0 }
+  ],
+  "total": 68.98,
+  "status": "received"
+}

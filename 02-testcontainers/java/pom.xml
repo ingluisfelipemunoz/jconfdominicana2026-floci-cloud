@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>io.floci.workshop</groupId>
+  <artifactId>order-pipeline-tests</artifactId>
+  <version>1.0.0</version>
+
+  <properties>
+    <maven.compiler.release>21</maven.compiler.release>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <aws.sdk.version>2.42.24</aws.sdk.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>bom</artifactId>
+        <version>${aws.sdk.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <!-- Spins a fresh Floci per test class. Use 2.5.0 for Testcontainers 2.x
+         and Spring Boot 4.x. -->
+    <dependency>
+      <groupId>io.floci</groupId>
+      <artifactId>testcontainers-floci</artifactId>
+      <version>1.4.0</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- The four services the Module 1 pipeline uses, end to end. -->
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>s3</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>sqs</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>lambda</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>dynamodb</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!-- A synchronous HTTP client for the SDK clients. -->
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>url-connection-client</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Polling the async Lambda result without a hand-rolled sleep loop. -->
+    <dependency>
+      <groupId>org.awaitility</groupId>
+      <artifactId>awaitility</artifactId>
+      <version>4.2.1</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>5.10.2</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- JUnit 5 integration (@Testcontainers / @Container). Version matches the
+         Testcontainers core that testcontainers-floci pulls in. -->
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>1.21.4</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.2.5</version>
+      </plugin>
+    </plugins>
+  </build>
+</project>

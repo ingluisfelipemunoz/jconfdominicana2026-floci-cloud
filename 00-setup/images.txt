@@ -1,0 +1,31 @@
+# Images pulled by preflight. One per line. Lines starting with # are skipped.
+# Use the latest-compat tag so the bundled AWS CLI and boto3 are available
+# for init scripts and the migration module.
+#
+# Everything the workshop runs belongs here. If a module pulls an image at demo
+# time, it pulls it over conference wifi, which is what preflight exists to stop.
+
+# Modules 0-3: the edge, plus the real engines it spins on demand.
+# `floci start` uses the plain :latest tag, while the compose files and the
+# Testcontainers default use :latest-compat. Pull both, or the first
+# `floci start` in the room pulls :latest over conference wifi.
+floci/floci:latest
+floci/floci:latest-compat
+
+# Module 1: the real Lambda runtime container.
+public.ecr.aws/lambda/python:3.12
+
+# Module 3: the base image of the order-api container ECS runs, plus the k3s
+# engine behind EKS. The order-api image is BUILT on the laptop from this base
+# (see 03-real-infra/order-api/Dockerfile), so without this line every attendee
+# pulls a JRE in the middle of the module.
+eclipse-temurin:21-jre
+rancher/k3s:latest
+
+# Module 4: the "before" side of the LocalStack migration, plus the family.
+localstack/localstack:latest
+floci/floci-az:latest
+floci/floci-gcp:latest
+
+# Module 5: the act runner image (amd64-only; ~1 GB).
+catthehacker/ubuntu:act-latest

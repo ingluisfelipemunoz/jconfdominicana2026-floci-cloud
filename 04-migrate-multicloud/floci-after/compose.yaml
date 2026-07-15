@@ -1,0 +1,29 @@
+# AFTER: the same setup on Floci. The ONLY functional change from
+# ../localstack-before/compose.yaml is the image line — diff the two files and
+# see for yourself. Everything else (service name, env vars, mounts) is kept
+# byte-identical to prove the drop-in: Floci honors the LocalStack names under
+# parity mode (LOCALSTACK_PARITY is on by default; set it false to opt out).
+#
+# Verified 2026-07-10: this comes up, /_localstack/health answers, and the init
+# script under ./init runs unchanged to create the bucket.
+#
+# Use floci/floci:latest-compat (below) if your init scripts need the bundled
+# AWS CLI or boto3; plain floci/floci:latest works otherwise.
+#
+# When you're ready to migrate fully, the Floci-native env var spellings are:
+#   LOCALSTACK_HOST  -> FLOCI_HOSTNAME
+#   PERSISTENCE=1    -> FLOCI_STORAGE_MODE=persistent
+#   DEBUG=1          -> QUARKUS_LOG_LEVEL=DEBUG
+
+services:
+  localstack:
+    image: floci/floci:latest-compat
+    ports:
+      - "4566:4566"
+    environment:
+      - LOCALSTACK_HOST=localhost
+      - PERSISTENCE=1
+      - DEBUG=1
+    volumes:
+      - "./init:/etc/localstack/init"
+      - "/var/run/docker.sock:/var/run/docker.sock"

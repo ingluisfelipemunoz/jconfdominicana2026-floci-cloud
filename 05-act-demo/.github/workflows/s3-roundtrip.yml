@@ -1,0 +1,73 @@
+name: s3-roundtrip
+
+# A whole CI job — running locally via `act` — talking to a whole cloud
+# running locally via Floci. Create a bucket, upload a file, download it, cat it.
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  s3-roundtrip:
+    runs-on: ubuntu-latest
+
+    # Floci runs as a service container started by the job itself — the workflow
+    # is fully self-contained, nothing has to be running on the host first.
+    services:
+      floci:
+        image: floci/floci:latest-compat
+        ports:
+          - 4566:4566
+
+    env:
+      # The Floci service publishes 4566. Both act (job runs on the host network)
+      # and GitHub-hosted runners (services mapped to the runner's localhost)
+      # reach it the same way — via localhost:4566.
+      AWS_ENDPOINT_URL: http://localhost:4566
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_EC2_METADATA_DISABLED: "true"
+      BUCKET: act-demo
+    steps:
+      - name: Ensure AWS CLI + path-style S3
+        run: |
+          if ! command -v aws >/dev/null 2>&1; then
+            echo "installing aws cli v2..."
+            curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/awscliv2.zip
+            unzip -q /tmp/awscliv2.zip -d /tmp
+            /tmp/aws/install
+          fi
+          aws --version
+          # Custom endpoints need path-style addressing (no bucket-as-subdomain).
+          mkdir -p ~/.aws
+          printf '[default]\ns3 =\n    addressing_style = path\n' > ~/.aws/config
+
+      - name: Wait for Floci to be ready
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf "$AWS_ENDPOINT_URL/_localstack/health" >/dev/null; then
+              echo "Floci is ready"; exit 0
+            fi
+            echo "waiting for Floci... ($i)"; sleep 2
+          done
+          echo "Floci did not become ready" >&2; exit 1
+
+      - name: Create bucket
+        run: aws --endpoint-url "$AWS_ENDPOINT_URL" s3 mb "s3://$BUCKET"
+
+      - name: Upload a file
+        run: |
+          echo "Hello from act + Floci on $(date -u)" > hello.txt
+          aws --endpoint-url "$AWS_ENDPOINT_URL" s3 cp hello.txt "s3://$BUCKET/hello.txt"
+
+      - name: List the bucket
+        run: aws --endpoint-url "$AWS_ENDPOINT_URL" s3 ls "s3://$BUCKET/"
+
+      - name: Download it back
+        run: aws --endpoint-url "$AWS_ENDPOINT_URL" s3 cp "s3://$BUCKET/hello.txt" downloaded.txt
+
+      - name: Cat it
+        run: |
+          echo "----- downloaded.txt -----"
+          cat downloaded.txt
+          echo "--------------------------"

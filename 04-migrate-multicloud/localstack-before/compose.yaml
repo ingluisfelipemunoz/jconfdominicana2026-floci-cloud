@@ -1,0 +1,15 @@
+# BEFORE: a typical LocalStack setup.
+# Compare this with ../floci-after/compose.yaml — the diff is one line.
+
+services:
+  localstack:
+    image: localstack/localstack
+    ports:
+      - "4566:4566"
+    environment:
+      - LOCALSTACK_HOST=localhost
+      - PERSISTENCE=1
+      - DEBUG=1
+    volumes:
+      - "./init:/etc/localstack/init"
+      - "/var/run/docker.sock:/var/run/docker.sock"

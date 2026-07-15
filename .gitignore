@@ -1,0 +1,17 @@
+# Build output
+target/
+
+# Local env
+.env
+*.local
+
+# Editor / OS
+.DS_Store
+.idea/
+*.iml
+
+# Claude Code
+.claude/
+
+# Instructor-only material — never published to the attendee repo
+internal/

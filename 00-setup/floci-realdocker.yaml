@@ -1,0 +1,26 @@
+# Socket-mounted Floci. Use this from Module 1 onward.
+#
+# Mounting the Docker socket lets Floci spin REAL engine containers for
+# Lambda, EKS (k3s), and MSK (Redpanda) on demand. Module 1's Lambda needs it,
+# so this is the config from the very first module that runs application code.
+#
+# `floci start` already mounts the socket. Reach for this file instead when you
+# want compose to own the lifecycle, e.g. in a CI job or alongside other
+# services:
+#
+#     docker compose -f 00-setup/floci-realdocker.yaml up -d
+#
+# Pin a specific tag here if you need a reproducible build, but add it to
+# images.txt too, or preflight will not pre-pull it.
+
+services:
+  floci:
+    image: floci/floci:latest-compat
+    ports:
+      - "4566:4566"
+    environment:
+      FLOCI_STORAGE_MODE: memory
+      FLOCI_HOSTNAME: localhost
+      DEBUG: "0"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"

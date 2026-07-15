@@ -1,0 +1,73 @@
+# The SAME order-api image you just ran on ECS, now as a Kubernetes Deployment on
+# the EKS cluster. One image, two compute shapes, one DynamoDB table behind both.
+#
+# Two things here are specific to running against a local cluster:
+#
+#   imagePullPolicy: Never   The image was built on your laptop and imported
+#                            straight into k3s's containerd. There is no registry
+#                            to pull it from, and without this Kubernetes would
+#                            try to reach Docker Hub and fail with ErrImagePull.
+#
+#   AWS_ENDPOINT_URL         The endpoint duality again. A pod cannot resolve
+#                            `host.docker.internal` the way an ECS task can, so it
+#                            reaches Floci through the Docker bridge gateway.
+#
+#                            172.17.0.1 is the default gateway and works almost
+#                            everywhere, so `kubectl apply -f` on this file works
+#                            as-is. setup.sh looks the gateway up with
+#                            `docker network inspect bridge` and substitutes it,
+#                            for the rare host where it differs. If you apply this
+#                            by hand and the pods run but /orders hangs, that's
+#                            what to check.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-api
+  labels:
+    app: order-api
+spec:
+  # Two replicas, so `kubectl get pods` shows Kubernetes actually doing its job.
+  replicas: 2
+  selector:
+    matchLabels:
+      app: order-api
+  template:
+    metadata:
+      labels:
+        app: order-api
+    spec:
+      containers:
+        - name: app
+          image: order-api:1.0
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: AWS_ENDPOINT_URL
+              value: http://172.17.0.1:4566
+            - name: AWS_REGION
+              value: us-east-1
+            - name: AWS_ACCESS_KEY_ID
+              value: test
+            - name: AWS_SECRET_ACCESS_KEY
+              value: test
+            - name: ORDERS_TABLE
+              value: orders
+          readinessProbe:
+            httpGet:
+              path: /q/health
+              port: 8080
+            initialDelaySeconds: 2
+            periodSeconds: 2
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-api
+spec:
+  selector:
+    app: order-api
+  ports:
+    - port: 8080
+      targetPort: 8080
