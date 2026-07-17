@@ -2,7 +2,7 @@
 # (you already have Java 21 + Maven, and a warm Maven cache from Modules 1-2),
 # then this copies the Quarkus fast-jar layout into a slim JRE. One small layer,
 # no Maven-in-Docker, no second dependency download.
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
 COPY target/quarkus-app/lib/     ./lib/
