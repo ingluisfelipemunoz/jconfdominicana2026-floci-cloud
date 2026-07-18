@@ -10,6 +10,9 @@ COPY target/quarkus-app/*.jar    ./
 COPY target/quarkus-app/app/     ./app/
 COPY target/quarkus-app/quarkus/ ./quarkus/
 
+RUN addgroup -S app && adduser -S app -G app && chown -R app:app /app
+USER app
+
 EXPOSE 8080
 ENV QUARKUS_HTTP_HOST=0.0.0.0
 ENTRYPOINT ["java", "-jar", "quarkus-run.jar"]
